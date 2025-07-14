@@ -1,42 +1,52 @@
 from docx import Document
+import re
+import os
 
 def detect_phrases(doc_path):
-    # Daftar frasa yang akan dideteksi
-    phrases = [
-        "Halaman Pengesahan", "Pernyataan", "Abstrak", 
-        "Kata Pengantar", "Daftar Isi", "Daftar Pustaka", 
-        "Lampiran"
+    doc = Document(doc_path)
+    full_text = ' '.join([para.text for para in doc.paragraphs])
+
+    # Daftar frasa yang harus ada (contoh)
+    required_phrases = [
+        "Halaman Pengesahan", "Pernyataan Keaslian Skripsi", "Abstrak",
+        "Kata Pengantar", "Daftar Isi", "Daftar Tabel", "Daftar Gambar",
+        "Daftar Pustaka", "Lampiran"
     ]
 
-    # Membuka dokumen
-    doc = Document(doc_path)
     found_phrases = []
-    
-    # Membaca semua teks dari dokumen
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        # Mendeteksi frasa
-        for phrase in phrases:
-            if phrase.lower() in text.lower():
-                found_phrases.append(phrase)
-                break  # Jika sudah ditemukan, tidak perlu cek frasa lain
+    not_found_phrases = []
 
-    # Menentukan frasa yang tidak ditemukan
-    not_found_phrases = [phrase for phrase in phrases if phrase not in found_phrases]
+    for phrase in required_phrases:
+        if re.search(r'\b' + re.escape(phrase) + r'\b', full_text, re.IGNORECASE):
+            found_phrases.append(phrase)
+        else:
+            not_found_phrases.append(phrase)
 
-    # Menampilkan hasil deteksi
-    print("✅ Ditemukan:", found_phrases)
-    print("❌ Tidak ditemukan:", not_found_phrases)
+    # =====================================
+    # Tentukan direktori dan path file output
+    # =====================================
+    output_dir = "hasil"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # Menyimpan hasil deteksi ke file .txt
-    with open('hasil_format_teknis.txt', 'w') as f:
-        f.write("✅ Ditemukan: " + ', '.join(found_phrases) + '\n')
-        f.write("❌ Tidak ditemukan: " + ', '.join(not_found_phrases) + '\n')
+    output_file_path = os.path.join(output_dir, "hasil_format_teknis.txt")
 
-        # Menambahkan catatan jika 'Daftar Pustaka' tidak ditemukan
-        if "Daftar Pustaka" not in found_phrases:
-            f.write("Catatan: Pastikan Daftar Pustaka ditulis dengan benar sebagai bagian wajib dari karya ilmiah.\n")
+    try:
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            f.write("HASIL PEMERIKSAAN FORMAT TEKNIS:\n\n")
+            f.write("✅ Ditemukan: " + str(found_phrases) + "\n")
+            f.write("❌ Tidak ditemukan: " + str(not_found_phrases) + "\n\n")
+            if "Lampiran" in not_found_phrases:
+                f.write("Catatan: Periksa apakah Lampiran diperlukan dan sudah disertakan.\n")
+        
+        print(f"DEBUG: File '{output_file_path}' berhasil ditulis oleh cek_format_teknis.py.")
+        print(f"✅ Ditemukan: {found_phrases}")
+        print(f"❌ Tidak ditemukan: {not_found_phrases}")
+    except Exception as e:
+        print(f"ERROR: Gagal menulis file di cek_format_teknis.py: {e}")
+        # Jika terjadi error, set counts to 0
+        found_phrases = []
+        not_found_phrases = []
 
-        # Menambahkan catatan jika 'Lampiran' tidak ditemukan
-        if "Lampiran" not in found_phrases:
-            f.write("Catatan: Periksa apakah Lampiran diperlukan dan sudah disertakan.\n")
+    # <--- Mengembalikan jumlah frasa yang ditemukan dan tidak ditemukan
+    return len(found_phrases), len(not_found_phrases)

@@ -1,15 +1,17 @@
 import streamlit as st
 import os
+# Import semua modul pemeriksaan yang ada
 from pemeriksaan import cek_format_teknis, cek_kutipan, cek_kalimat_panjang, cek_kalimat_pasif, cek_bahasa_tidak_akademik, cek_format_font_spasi
+# Import modul pemeriksaan ejaan dan tata bahasa yang baru
+from pemeriksaan import cek_ejaan_tata_bahasa
 
 # =====================================
 # Konfigurasi Halaman Streamlit
 # =====================================
 st.set_page_config(
     page_title="Sistem Pemeriksaan Naskah Skripsi",
-    # page_icon="📚", # <--- IKON BUKU DIHILANGKAN
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide", # Mengatur tata letak halaman menjadi lebar
+    initial_sidebar_state="collapsed" # Sidebar bisa dibuka/ditutup
 )
 
 # =====================================
@@ -140,7 +142,6 @@ st.markdown("""
 # =====================================
 # Tampilan Header
 # =====================================
-# <--- IKON BUKU DIHILANGKAN DARI SINI
 st.markdown("<h1 style='color:#002147;'>Sistem Pemeriksaan Naskah Skripsi</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='color:#555555;'>Program Studi Ilmu Pemerintahan - FISIP Universitas Tadulako</h4>", unsafe_allow_html=True)
 st.markdown("---")
@@ -148,30 +149,91 @@ st.markdown("---")
 # =====================================
 # Upload File
 # =====================================
-st.markdown("📥 Silakan unggah file skripsi (.docx)") # Mengubah ini menjadi markdown biasa untuk styling
-uploaded_file = st.file_uploader("", type=["docx"], label_visibility="collapsed") # Label visibility collapsed untuk menghilangkan label default
+st.markdown("📥 Silakan unggah file skripsi (.docx)")
+uploaded_file = st.file_uploader("", type=["docx"], label_visibility="collapsed")
 
 if uploaded_file is not None:
-    # Simpan file yang diunggah sementara
     temp_docx_path = "skripsi_temp.docx"
     with open(temp_docx_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     st.success(f"File **{uploaded_file.name}** berhasil diunggah. Siap diperiksa!")
 
     # =====================================
-    # Jalankan semua pemeriksaan
+    # Download NLTK data for TextBlob (hanya sekali)
+    # Ini penting agar TextBlob bisa berfungsi di Streamlit Cloud
     # =====================================
-    cek_format_teknis.detect_phrases(temp_docx_path)
-    cek_kutipan.analyze_apa_citations(temp_docx_path)
-    cek_kalimat_panjang.analyze_sentences(temp_docx_path)
-    cek_kalimat_pasif.detect_passive_sentences(temp_docx_path)
-    cek_bahasa_tidak_akademik.detect_non_academic_phrases(temp_docx_path)
-    cek_format_font_spasi.check_document_formatting(temp_docx_path)
+    import nltk
+    try:
+        nltk.data.find('corpora/punkt')
+    except nltk.downloader.DownloadError:
+        nltk.download('punkt')
+    try:
+        nltk.data.find('taggers/averaged_perceptron_tagger')
+    except nltk.downloader.DownloadError:
+        nltk.download('averaged_perceptron_tagger')
+    # =====================================
 
     # =====================================
-    # Tampilkan hasil pemeriksaan
+    # Jalankan semua pemeriksaan dan kumpulkan hasilnya untuk ringkasan
     # =====================================
-    st.markdown("<h2>📄 Hasil Pemeriksaan Naskah:</h2>", unsafe_allow_html=True) # Menggunakan h2 dengan unsafe_allow_html
+    # Inisialisasi dictionary untuk menyimpan ringkasan hasil
+    summary_results = {}
+
+    # Pemeriksaan Format Teknis
+    # Asumsi cek_format_teknis.detect_phrases mengembalikan (ditemukan_count, tidak_ditemukan_count)
+    found_phrases_count, not_found_phrases_count = cek_format_teknis.detect_phrases(temp_docx_path)
+    summary_results['Format Teknis'] = f"Ditemukan: {found_phrases_count}, Tidak Ditemukan: {not_found_phrases_count}"
+
+    # Pemeriksaan Kutipan
+    # Asumsi cek_kutipan.analyze_apa_citations mengembalikan (proper_citations_count, incomplete_citations_count)
+    proper_citations_count, incomplete_citations_count = cek_kutipan.analyze_apa_citations(temp_docx_path)
+    summary_results['Kutipan APA'] = f"Benar: {proper_citations_count}, Perlu Revisi: {incomplete_citations_count}"
+
+    # Pemeriksaan Kalimat Panjang
+    # Asumsi cek_kalimat_panjang.analyze_sentences mengembalikan long_sentences_count
+    long_sentences_count = cek_kalimat_panjang.analyze_sentences(temp_docx_path)
+    summary_results['Kalimat Panjang'] = f"Ditemukan: {long_sentences_count}"
+
+    # Pemeriksaan Kalimat Pasif
+    # Asumsi cek_kalimat_pasif.detect_passive_sentences mengembalikan passive_sentences_count
+    passive_sentences_count = cek_kalimat_pasif.detect_passive_sentences(temp_docx_path)
+    summary_results['Kalimat Pasif'] = f"Ditemukan: {passive_sentences_count}"
+
+    # Pemeriksaan Bahasa Tidak Akademik
+    # Asumsi cek_bahasa_tidak_akademik.detect_non_academic_phrases mengembalikan non_academic_phrases_count
+    non_academic_phrases_count = cek_bahasa_tidak_akademik.detect_non_academic_phrases(temp_docx_path)
+    summary_results['Bahasa Tidak Akademik'] = f"Ditemukan: {non_academic_phrases_count}"
+
+    # Pemeriksaan Ejaan dan Tata Bahasa (MODUL BARU)
+    # Asumsi cek_ejaan_tata_bahasa.analyze_spelling_grammar mengembalikan total_issues
+    spelling_grammar_issues_count = cek_ejaan_tata_bahasa.analyze_spelling_grammar(temp_docx_path)
+    summary_results['Ejaan & Tata Bahasa'] = f"Potensi Kesalahan: {spelling_grammar_issues_count}"
+
+    # Pemeriksaan Format Font dan Spasi
+    # Asumsi cek_format_font_spasi.check_document_formatting mengembalikan status (misal: 1 jika berhasil, 0 jika tidak)
+    format_font_spasi_status = cek_format_font_spasi.check_document_formatting(temp_docx_path)
+    summary_results['Format Font & Spasi'] = "Pemeriksaan Selesai" if format_font_spasi_status > 0 else "Tidak Ada Laporan Spesifik"
+
+
+    # =====================================
+    # Tampilkan Ringkasan Hasil di Bagian Atas
+    # =====================================
+    st.markdown("<h2>📊 Ringkasan Hasil Pemeriksaan:</h2>", unsafe_allow_html=True)
+    cols = st.columns(3) # Buat 3 kolom untuk tampilan metrik
+
+    col_idx = 0
+    for key, value in summary_results.items():
+        with cols[col_idx]:
+            st.metric(label=key, value=value)
+        col_idx = (col_idx + 1) % 3 # Pindah ke kolom berikutnya, kembali ke 0 jika sudah 3
+
+    st.markdown("---") # Garis pemisah setelah ringkasan
+
+
+    # =====================================
+    # Tampilkan hasil pemeriksaan detail
+    # =====================================
+    st.markdown("<h2>📄 Detail Hasil Pemeriksaan:</h2>", unsafe_allow_html=True)
 
     # Daftar file hasil yang diharapkan ada di folder 'hasil/'
     hasil_files = [
@@ -181,6 +243,7 @@ if uploaded_file is not None:
         "hasil/hasil_kalimat_panjang.txt",
         "hasil/hasil_kalimat_pasif.txt",
         "hasil/hasil_bahasa_tidak_akademik.txt",
+        "hasil/hasil_ejaan_tata_bahasa.txt", # <--- TAMBAHKAN FILE HASIL BARU UNTUK EJAAN/TATA BAHASA
         "hasil/hasil_format_font_spasi.txt",
     ]
 
@@ -195,7 +258,8 @@ if uploaded_file is not None:
 
     # Loop untuk menampilkan setiap file hasil
     for file_path in hasil_files:
-        st.markdown(f"<h3>🔎 {os.path.basename(file_path).replace('_', ' ').replace('.txt', '').title()}</h3>", unsafe_allow_html=True) # Tampilan judul lebih rapi dan kapitalisasi
+        clean_file_name = os.path.basename(file_path).replace('_', ' ').replace('.txt', '').title()
+        st.markdown(f"<h3>🔎 {clean_file_name}</h3>", unsafe_allow_html=True)
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -204,15 +268,15 @@ if uploaded_file is not None:
             st.code(isi, language="markdown")
 
             st.download_button(
-                label=f"⬇️ Unduh {os.path.basename(file_path).replace('_', ' ').replace('.txt', '').title()}",
+                label=f"⬇️ Unduh {clean_file_name}.txt",
                 data=isi,
                 file_name=os.path.basename(file_path),
                 mime="text/plain"
             )
         except FileNotFoundError:
-            st.error(f"File hasil '{os.path.basename(file_path)}' tidak ditemukan. Pastikan modul pemeriksaan terkait berhasil membuatnya.")
+            st.error(f"File hasil '{clean_file_name}.txt' tidak ditemukan. Pastikan modul pemeriksaan terkait berhasil membuatnya.")
         except Exception as e:
-            st.error(f"Terjadi kesalahan saat membaca file '{os.path.basename(file_path)}': {e}")
+            st.error(f"Terjadi kesalahan saat membaca file '{clean_file_name}.txt': {e}")
 
         st.markdown("---")
 

@@ -1,22 +1,18 @@
 from docx import Document
 import re
-import os # Pastikan baris ini ada
+import os
 
 def detect_non_academic_phrases(doc_path):
-    # Membuka dokumen
     doc = Document(doc_path)
     
-    # Mengumpulkan semua teks dari dokumen
     full_text = []
     for para in doc.paragraphs:
         full_text.append(para.text)
     full_text = ' '.join(full_text)
     
-    # Memecah teks menjadi kalimat
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s', full_text)
     
-    # Daftar frasa tidak akademik
-    non_academic_phrases = [
+    non_academic_phrases_list = [ # Rename variable to avoid conflict
         "menurut saya", "saya berpendapat", "saya rasa", "saya pikir",
         "saya ingin", "saya mencoba", "saya melihat", "saya menyimpulkan",
         "saya beranggapan", "kami beranggapan", "kami menyimpulkan",
@@ -27,47 +23,44 @@ def detect_non_academic_phrases(doc_path):
         "menurut kami"
     ]
     
-    # Menyimpan kalimat yang mengandung frasa tidak akademik
     non_academic_sentences = []
     
-    # Pola untuk mendeteksi frasa tidak akademik
-    pattern = re.compile('|'.join(non_academic_phrases), re.IGNORECASE)
+    pattern = re.compile('|'.join(non_academic_phrases_list), re.IGNORECASE) # Use renamed variable
     
     for sentence in sentences:
         if pattern.search(sentence):
             non_academic_sentences.append(sentence.strip())
     
-    # Tentukan direktori output
+    # =====================================
+    # Tentukan direktori dan path file output
+    # =====================================
     output_dir = "hasil"
-    
-    # Pastikan direktori 'hasil' sudah ada. Jika belum, buatlah.
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # Tentukan path lengkap untuk file output.
     output_file_path = os.path.join(output_dir, "hasil_bahasa_tidak_akademik.txt")
 
-    # =================================================================================
-    # BAGIAN PENTING YANG DIMODIFIKASI: File selalu dibuat
-    # =================================================================================
+    total_non_academic_sentences = len(non_academic_sentences)
+
     try:
         with open(output_file_path, 'w', encoding='utf-8') as f:
-            if non_academic_sentences:
+            f.write("HASIL PEMERIKSAAN BAHASA TIDAK AKADEMIK:\n\n")
+            if total_non_academic_sentences > 0:
                 for i, sentence in enumerate(non_academic_sentences, 1):
                     f.write(f"Kalimat Tidak Akademik #{i}:\n")
                     f.write(f"{sentence}\n")
                     f.write("-" * 50 + "\n")
-                print(f"Ditemukan {len(non_academic_sentences)} kalimat tidak akademik. Hasil disimpan di '{output_file_path}'")
+                f.write("\nCATATAN REVISI:\n")
+                f.write("- Hindari penggunaan frasa personal atau informal dalam penulisan akademik.\n")
+                f.write("- Gunakan gaya bahasa yang objektif dan formal.\n")
             else:
-                # Jika tidak ada kalimat tidak akademik, tulis pesan ke file
                 f.write("Tidak ditemukan kalimat tidak akademik.\n")
-                print(f"Tidak ditemukan kalimat tidak akademik. Hasil disimpan di '{output_file_path}'")
         
-        # Pesan debugging ini akan muncul di terminal jika penulisan berhasil
         print(f"DEBUG: File '{output_file_path}' berhasil ditulis oleh cek_bahasa_tidak_akademik.py.")
+        print(f"Ditemukan {total_non_academic_sentences} kalimat tidak akademik. Hasil disimpan di '{output_file_path}'.")
     except Exception as e:
         print(f"ERROR: Gagal menulis file di cek_bahasa_tidak_akademik.py: {e}")
-        # raise # Anda bisa mengaktifkan ini jika ingin error ini menghentikan program
-    # =================================================================================
-    # AKHIR BAGIAN MODIFIKASI
-    # =================================================================================
+        total_non_academic_sentences = 0
+
+    # <--- Mengembalikan jumlah kalimat tidak akademik
+    return total_non_academic_sentences
