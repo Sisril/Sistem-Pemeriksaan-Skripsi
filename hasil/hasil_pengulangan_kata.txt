@@ -1,2 +1,0 @@
-Kata yang berulang lebih dari 5% dari total kata:
---------------------------------------------------

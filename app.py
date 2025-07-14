@@ -5,7 +5,7 @@ from pemeriksaan import cek_format_teknis, cek_kutipan, cek_kalimat_panjang, cek
 # Import modul pemeriksaan ejaan dan tata bahasa yang baru
 from pemeriksaan import cek_ejaan_tata_bahasa
 
-import nltk # <--- BARIS INI TETAP ADA
+import nltk
 
 # =====================================
 # Konfigurasi Halaman Streamlit
@@ -152,7 +152,8 @@ st.markdown("---")
 # Upload File
 # =====================================
 st.markdown("📥 Silakan unggah file skripsi (.docx)")
-uploaded_file = st.file_uploader("", type=["docx"], label_visibility="collapsed")
+# <--- BARIS INI DIMODIFIKASI UNTUK MENAMBAHKAN LABEL NON-KOSONG
+uploaded_file = st.file_uploader("Unggah File Skripsi", type=["docx"], label_visibility="collapsed")
 
 if uploaded_file is not None:
     temp_docx_path = "skripsi_temp.docx"
@@ -164,15 +165,14 @@ if uploaded_file is not None:
     # Download NLTK data for TextBlob (hanya sekali)
     # Ini penting agar TextBlob bisa berfungsi di Streamlit Cloud
     # =====================================
-    # Menggunakan Exception umum untuk menangani potensi DownloadError
     try:
         nltk.data.find('corpora/punkt')
-    except Exception as e: # Catching general Exception to avoid specific ImportError
+    except Exception as e:
         st.warning(f"Mengunduh NLTK data 'punkt'. Ini mungkin memakan waktu sebentar. ({e})")
         nltk.download('punkt')
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except Exception as e: # Catching general Exception to avoid specific ImportError
+    except Exception as e:
         st.warning(f"Mengunduh NLTK data 'averaged_perceptron_tagger'. Ini mungkin memakan waktu sebentar. ({e})")
         nltk.download('averaged_perceptron_tagger')
     # =====================================
@@ -180,34 +180,26 @@ if uploaded_file is not None:
     # =====================================
     # Jalankan semua pemeriksaan dan kumpulkan hasilnya untuk ringkasan
     # =====================================
-    # Inisialisasi dictionary untuk menyimpan ringkasan hasil
     summary_results = {}
 
-    # Pemeriksaan Format Teknis
     found_phrases_count, not_found_phrases_count = cek_format_teknis.detect_phrases(temp_docx_path)
     summary_results['Format Teknis'] = f"Ditemukan: {found_phrases_count}, Tidak Ditemukan: {not_found_phrases_count}"
 
-    # Pemeriksaan Kutipan
     proper_citations_count, incomplete_citations_count = cek_kutipan.analyze_apa_citations(temp_docx_path)
     summary_results['Kutipan APA'] = f"Benar: {proper_citations_count}, Perlu Revisi: {incomplete_citations_count}"
 
-    # Pemeriksaan Kalimat Panjang
     long_sentences_count = cek_kalimat_panjang.analyze_sentences(temp_docx_path)
     summary_results['Kalimat Panjang'] = f"Ditemukan: {long_sentences_count}"
 
-    # Pemeriksaan Kalimat Pasif
     passive_sentences_count = cek_kalimat_pasif.detect_passive_sentences(temp_docx_path)
     summary_results['Kalimat Pasif'] = f"Ditemukan: {passive_sentences_count}"
 
-    # Pemeriksaan Bahasa Tidak Akademik
     non_academic_phrases_count = cek_bahasa_tidak_akademik.detect_non_academic_phrases(temp_docx_path)
     summary_results['Bahasa Tidak Akademik'] = f"Ditemukan: {non_academic_phrases_count}"
 
-    # Pemeriksaan Ejaan dan Tata Bahasa (MODUL BARU)
     spelling_grammar_issues_count = cek_ejaan_tata_bahasa.analyze_spelling_grammar(temp_docx_path)
     summary_results['Ejaan & Tata Bahasa'] = f"Potensi Kesalahan: {spelling_grammar_issues_count}"
 
-    # Pemeriksaan Format Font dan Spasi
     format_font_spasi_status = cek_format_font_spasi.check_document_formatting(temp_docx_path)
     summary_results['Format Font & Spasi'] = "Pemeriksaan Selesai" if format_font_spasi_status > 0 else "Tidak Ada Laporan Spesifik"
 
