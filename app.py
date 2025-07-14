@@ -6,7 +6,6 @@ from pemeriksaan import cek_format_teknis, cek_kutipan, cek_kalimat_panjang, cek
 from pemeriksaan import cek_ejaan_tata_bahasa
 
 import nltk # <--- BARIS INI TETAP ADA
-# from nltk.downloader import DownloadError # <--- BARIS INI DIHAPUS/DIKOMENTARI LAGI, KARENA INI PENYEBAB IMPORTERROR
 
 # =====================================
 # Konfigurasi Halaman Streamlit
@@ -165,15 +164,15 @@ if uploaded_file is not None:
     # Download NLTK data for TextBlob (hanya sekali)
     # Ini penting agar TextBlob bisa berfungsi di Streamlit Cloud
     # =====================================
-    # <--- BAGIAN INI DIMODIFIKASI LAGI: Menggunakan Exception yang lebih umum
+    # Menggunakan Exception umum untuk menangani potensi DownloadError
     try:
         nltk.data.find('corpora/punkt')
-    except Exception as e: # <--- Menggunakan Exception umum untuk menghindari ImportError
+    except Exception as e: # Catching general Exception to avoid specific ImportError
         st.warning(f"Mengunduh NLTK data 'punkt'. Ini mungkin memakan waktu sebentar. ({e})")
         nltk.download('punkt')
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except Exception as e: # <--- Menggunakan Exception umum untuk menghindari ImportError
+    except Exception as e: # Catching general Exception to avoid specific ImportError
         st.warning(f"Mengunduh NLTK data 'averaged_perceptron_tagger'. Ini mungkin memakan waktu sebentar. ({e})")
         nltk.download('averaged_perceptron_tagger')
     # =====================================
