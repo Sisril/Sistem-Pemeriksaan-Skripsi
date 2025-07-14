@@ -1,0 +1,6 @@
+Hasil Pemeriksaan Format Font dan Spasi:
+
+Pemeriksaan format font dan spasi selesai.
+Pastikan font yang digunakan konsisten (misal: Times New Roman, 12pt).
+Pastikan spasi antar baris konsisten (misal: 1.5 atau 2).
+Periksa juga penomoran halaman dan margin.

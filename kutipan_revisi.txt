@@ -1,0 +1,30 @@
+DAFTAR KUTIPAN YANG MEMERLUKAN REVISI:
+
+Berikut adalah kutipan yang hanya menyebutkan nama tanpa tahun:
+
+1. (BPD)
+2. (Kekuasaan, Kepentingan-Kepentingan, dan Strategi dari Aktor yang Terlibat) Dalam suatu kebijakan perlu dipertimbangkan pula kekuatan atau kekuasaan, kepentingan serta strategi yang digunakan oleh para actor yang terlibat guna memperlancar jalannya pelaksanaan suatu implementasi kebijakan. Bila hal ini tidak diperhitungkan dengan matang, sangat besar kemungkinan program yang hendak diimplementasikan akan jauh hasilnya dari yang diharapkan. b.)	Institution and Regime Characteristic (Karakteristik lembaga dan penguasa) Lingkungan dimana suatu kebijakan tersebut dilaksanakan juga berpengaruh terhadap keberhasilannya, maka pada bagian ini ingin dijelaskan karakteristik dari suatu lembaga yang akan turut mempengaruhi suatu kebijakan. c.)Compliance and Responsiveness (Tingkat Kepatuhan dan Adanya Respon dari Pelaksana)
+3. (Lima)
+4. (Masyarakat)
+5. (Perdes)
+6. (Petani)
+7. (Peternak)
+8. (SAMSAT)
+9. (SOP)
+10. (air)
+11. (design)
+12. (empat)
+13. (intensif)
+14. (mengurangi)
+15. (outcome)
+16. (output)
+17. (pejabat, kelompok, instansi pemerintah)
+18. (pengembunan)
+19. (stakeholders)
+20. (temuan)
+
+CATATAN REVISI:
+- Tambahkan tahun publikasi setelah nama penulis
+- Pastikan format mengikuti pola (Penulis, Tahun)
+- Untuk beberapa penulis: (Penulis1 & Penulis2, Tahun)
+- Untuk lebih dari 2 penulis: (Penulis1 et al., Tahun)
