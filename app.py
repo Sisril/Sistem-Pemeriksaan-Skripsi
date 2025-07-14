@@ -5,8 +5,8 @@ from pemeriksaan import cek_format_teknis, cek_kutipan, cek_kalimat_panjang, cek
 # Import modul pemeriksaan ejaan dan tata bahasa yang baru
 from pemeriksaan import cek_ejaan_tata_bahasa
 
-import nltk
-from nltk.downloader import DownloadError # <--- BARIS INI DITAMBAHKAN: Mengimpor DownloadError secara eksplisit
+import nltk # <--- BARIS INI TETAP ADA
+# from nltk.downloader import DownloadError # <--- BARIS INI DIHAPUS/DIKOMENTARI
 
 # =====================================
 # Konfigurasi Halaman Streamlit
@@ -168,11 +168,11 @@ if uploaded_file is not None:
     # <--- BAGIAN INI DIMODIFIKASI
     try:
         nltk.data.find('corpora/punkt')
-    except DownloadError: # <--- Menggunakan DownloadError yang sudah diimpor
+    except nltk.downloader.DownloadError: # <--- Menggunakan path lengkap untuk DownloadError
         nltk.download('punkt')
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except DownloadError: # <--- Menggunakan DownloadError yang sudah diimpor
+    except nltk.downloader.DownloadError: # <--- Menggunakan path lengkap untuk DownloadError
         nltk.download('averaged_perceptron_tagger')
     # =====================================
 
