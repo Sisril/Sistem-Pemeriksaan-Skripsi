@@ -5,6 +5,9 @@ from pemeriksaan import cek_format_teknis, cek_kutipan, cek_kalimat_panjang, cek
 # Import modul pemeriksaan ejaan dan tata bahasa yang baru
 from pemeriksaan import cek_ejaan_tata_bahasa
 
+import nltk
+from nltk.downloader import DownloadError # <--- BARIS INI DITAMBAHKAN: Mengimpor DownloadError secara eksplisit
+
 # =====================================
 # Konfigurasi Halaman Streamlit
 # =====================================
@@ -162,14 +165,14 @@ if uploaded_file is not None:
     # Download NLTK data for TextBlob (hanya sekali)
     # Ini penting agar TextBlob bisa berfungsi di Streamlit Cloud
     # =====================================
-    import nltk
+    # <--- BAGIAN INI DIMODIFIKASI
     try:
         nltk.data.find('corpora/punkt')
-    except nltk.downloader.DownloadError:
+    except DownloadError: # <--- Menggunakan DownloadError yang sudah diimpor
         nltk.download('punkt')
     try:
         nltk.data.find('taggers/averaged_perceptron_tagger')
-    except nltk.downloader.DownloadError:
+    except DownloadError: # <--- Menggunakan DownloadError yang sudah diimpor
         nltk.download('averaged_perceptron_tagger')
     # =====================================
 
@@ -180,37 +183,30 @@ if uploaded_file is not None:
     summary_results = {}
 
     # Pemeriksaan Format Teknis
-    # Asumsi cek_format_teknis.detect_phrases mengembalikan (ditemukan_count, tidak_ditemukan_count)
     found_phrases_count, not_found_phrases_count = cek_format_teknis.detect_phrases(temp_docx_path)
     summary_results['Format Teknis'] = f"Ditemukan: {found_phrases_count}, Tidak Ditemukan: {not_found_phrases_count}"
 
     # Pemeriksaan Kutipan
-    # Asumsi cek_kutipan.analyze_apa_citations mengembalikan (proper_citations_count, incomplete_citations_count)
     proper_citations_count, incomplete_citations_count = cek_kutipan.analyze_apa_citations(temp_docx_path)
     summary_results['Kutipan APA'] = f"Benar: {proper_citations_count}, Perlu Revisi: {incomplete_citations_count}"
 
     # Pemeriksaan Kalimat Panjang
-    # Asumsi cek_kalimat_panjang.analyze_sentences mengembalikan long_sentences_count
     long_sentences_count = cek_kalimat_panjang.analyze_sentences(temp_docx_path)
     summary_results['Kalimat Panjang'] = f"Ditemukan: {long_sentences_count}"
 
     # Pemeriksaan Kalimat Pasif
-    # Asumsi cek_kalimat_pasif.detect_passive_sentences mengembalikan passive_sentences_count
     passive_sentences_count = cek_kalimat_pasif.detect_passive_sentences(temp_docx_path)
     summary_results['Kalimat Pasif'] = f"Ditemukan: {passive_sentences_count}"
 
     # Pemeriksaan Bahasa Tidak Akademik
-    # Asumsi cek_bahasa_tidak_akademik.detect_non_academic_phrases mengembalikan non_academic_phrases_count
     non_academic_phrases_count = cek_bahasa_tidak_akademik.detect_non_academic_phrases(temp_docx_path)
     summary_results['Bahasa Tidak Akademik'] = f"Ditemukan: {non_academic_phrases_count}"
 
     # Pemeriksaan Ejaan dan Tata Bahasa (MODUL BARU)
-    # Asumsi cek_ejaan_tata_bahasa.analyze_spelling_grammar mengembalikan total_issues
     spelling_grammar_issues_count = cek_ejaan_tata_bahasa.analyze_spelling_grammar(temp_docx_path)
     summary_results['Ejaan & Tata Bahasa'] = f"Potensi Kesalahan: {spelling_grammar_issues_count}"
 
     # Pemeriksaan Format Font dan Spasi
-    # Asumsi cek_format_font_spasi.check_document_formatting mengembalikan status (misal: 1 jika berhasil, 0 jika tidak)
     format_font_spasi_status = cek_format_font_spasi.check_document_formatting(temp_docx_path)
     summary_results['Format Font & Spasi'] = "Pemeriksaan Selesai" if format_font_spasi_status > 0 else "Tidak Ada Laporan Spesifik"
 
@@ -219,15 +215,15 @@ if uploaded_file is not None:
     # Tampilkan Ringkasan Hasil di Bagian Atas
     # =====================================
     st.markdown("<h2>📊 Ringkasan Hasil Pemeriksaan:</h2>", unsafe_allow_html=True)
-    cols = st.columns(3) # Buat 3 kolom untuk tampilan metrik
+    cols = st.columns(3)
 
     col_idx = 0
     for key, value in summary_results.items():
         with cols[col_idx]:
             st.metric(label=key, value=value)
-        col_idx = (col_idx + 1) % 3 # Pindah ke kolom berikutnya, kembali ke 0 jika sudah 3
+        col_idx = (col_idx + 1) % 3
 
-    st.markdown("---") # Garis pemisah setelah ringkasan
+    st.markdown("---")
 
 
     # =====================================
@@ -235,7 +231,6 @@ if uploaded_file is not None:
     # =====================================
     st.markdown("<h2>📄 Detail Hasil Pemeriksaan:</h2>", unsafe_allow_html=True)
 
-    # Daftar file hasil yang diharapkan ada di folder 'hasil/'
     hasil_files = [
         "hasil/hasil_format_teknis.txt",
         "hasil/hasil_kutipan.txt",
@@ -243,7 +238,7 @@ if uploaded_file is not None:
         "hasil/hasil_kalimat_panjang.txt",
         "hasil/hasil_kalimat_pasif.txt",
         "hasil/hasil_bahasa_tidak_akademik.txt",
-        "hasil/hasil_ejaan_tata_bahasa.txt", # <--- TAMBAHKAN FILE HASIL BARU UNTUK EJAAN/TATA BAHASA
+        "hasil/hasil_ejaan_tata_bahasa.txt",
         "hasil/hasil_format_font_spasi.txt",
     ]
 
